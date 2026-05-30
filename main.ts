@@ -38,6 +38,10 @@ interface WaypointSettings {
 	ignorePaths: string[];
 	useSpaces: boolean;
 	numSpaces: number;
+	beginWaypointMarker: string;
+	endWaypointMarker: string;
+	beginLandmarkMarker: string;
+	endLandmarkMarker: string;
 }
 
 const DEFAULT_SETTINGS: WaypointSettings = {
@@ -56,14 +60,13 @@ const DEFAULT_SETTINGS: WaypointSettings = {
 	ignorePaths: ["_attachments"],
 	useSpaces: false,
 	numSpaces: 2,
+	beginWaypointMarker: "%% Begin Waypoint %%",
+	endWaypointMarker: "%% End Waypoint %%",
+	beginLandmarkMarker: "%% Begin Landmark %%",
+	endLandmarkMarker: "%% End Landmark %%",
 };
 
 export default class Waypoint extends Plugin {
-	static readonly BEGIN_WAYPOINT = "%% Begin Waypoint %%";
-	static readonly END_WAYPOINT = "%% End Waypoint %%";
-	static readonly BEGIN_LANDMARK = "%% Begin Landmark %%";
-	static readonly END_LANDMARK = "%% End Landmark %%";
-
 	foldersWithChanges = new Set<TFolder>();
 	settings: WaypointSettings;
 
@@ -206,10 +209,10 @@ export default class Waypoint extends Plugin {
 	 */
 	async getWaypointBounds(flag: string): Promise<[string, string] | [null, null]> {
 		if (flag === WaypointType.Waypoint) {
-			return [Waypoint.BEGIN_WAYPOINT, Waypoint.END_WAYPOINT];
+			return [this.settings.beginWaypointMarker, this.settings.endWaypointMarker];
 		}
 		if (flag === WaypointType.Landmark) {
-			return [Waypoint.BEGIN_LANDMARK, Waypoint.END_LANDMARK];
+			return [this.settings.beginLandmarkMarker, this.settings.endLandmarkMarker];
 		}
 		return [null, null];
 	}
@@ -382,7 +385,7 @@ export default class Waypoint extends Plugin {
 						return text;
 					}
 					const content = await this.app.vault.cachedRead(folderNote);
-					if (content.includes(Waypoint.BEGIN_WAYPOINT) || content.includes(this.settings.waypointFlag)) {
+					if (content.includes(this.settings.beginWaypointMarker) || content.includes(this.settings.waypointFlag)) {
 						return text;
 					}
 				}
@@ -513,11 +516,11 @@ export default class Waypoint extends Plugin {
 			if (folderNote instanceof TFile) {
 				this.log("Found folder note: " + folderNote.path);
 				const text = await this.app.vault.cachedRead(folderNote);
-				if (text.includes(Waypoint.BEGIN_WAYPOINT) || text.includes(this.settings.waypointFlag)) {
+				if (text.includes(this.settings.beginWaypointMarker) || text.includes(this.settings.waypointFlag)) {
 					this.log("Found parent waypoint!");
 					return [WaypointType.Waypoint, folderNote];
 				}
-				if (text.includes(Waypoint.BEGIN_LANDMARK) || text.includes(this.settings.landmarkFlag)) {
+				if (text.includes(this.settings.beginLandmarkMarker) || text.includes(this.settings.landmarkFlag)) {
 					this.log("Found parent landmark!");
 					return [WaypointType.Landmark, folderNote];
 				}
@@ -711,6 +714,54 @@ class WaypointSettingsTab extends PluginSettingTab {
 							this.plugin.settings.landmarkFlag = DEFAULT_SETTINGS.landmarkFlag;
 							console.error("Error: Landmark flag must be surrounded by double-percent signs.");
 						}
+						await this.plugin.saveSettings();
+					}),
+			);
+		new Setting(containerEl)
+			.setName("Waypoint Begin Marker")
+			.setDesc("Text marker that marks the start of waypoint generation. WARNING: Editing this field will make existing begin waypoint markers unusable and requires manual reinsertion.")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_SETTINGS.beginWaypointMarker)
+					.setValue(this.plugin.settings.beginWaypointMarker)
+					.onChange(async (value) => {
+						this.plugin.settings.beginWaypointMarker = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+		new Setting(containerEl)
+			.setName("Waypoint End Marker")
+			.setDesc("Text marker that marks the end of waypoint. WARNING: Editing this field will make existing end waypoint markers unusable and requires manual reinsertion.")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_SETTINGS.endWaypointMarker)
+					.setValue(this.plugin.settings.endWaypointMarker)
+					.onChange(async (value) => {
+						this.plugin.settings.endWaypointMarker = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+		new Setting(containerEl)
+			.setName("Landmark Begin Marker")
+			.setDesc("Text marker that marks the start of landmark. WARNING: Editing this field will make existing begin landmark markers unusable and requires manual reinsertion.")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_SETTINGS.beginLandmarkMarker)
+					.setValue(this.plugin.settings.beginLandmarkMarker)
+					.onChange(async (value) => {
+						this.plugin.settings.beginLandmarkMarker = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+		new Setting(containerEl)
+			.setName("Landmark End Marker")
+			.setDesc("Text marker that marks the end of landmark. WARNING: Editing this field will make existing end landmark markers unusable and requires manual reinsertion.")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_SETTINGS.endLandmarkMarker)
+					.setValue(this.plugin.settings.endLandmarkMarker)
+					.onChange(async (value) => {
+						this.plugin.settings.endLandmarkMarker = value;
 						await this.plugin.saveSettings();
 					}),
 			);
