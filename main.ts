@@ -3,20 +3,19 @@ import { App, debounce, normalizePath, Plugin, PluginSettingTab, Setting, TAbstr
 enum FolderNoteType {
 	InsideFolder = "INSIDE_FOLDER",
 	OutsideFolder = "OUTSIDE_FOLDER",
-	CustomFilename = "CUSTOM_FILENAME"
+	CustomFilename = "CUSTOM_FILENAME",
 }
 
 interface WaypointSettings {
-	waypointFlag: string
-	stopScanAtFolderNotes: boolean,
-	showFolderNotes: boolean,
-	showNonMarkdownFiles: boolean,
-	debugLogging: boolean,
-	useWikiLinks: boolean,
-	showEnclosingNote: boolean,
-	folderNoteType: string,
-	folderNoteFilename: string
-
+	waypointFlag: string;
+	stopScanAtFolderNotes: boolean;
+	showFolderNotes: boolean;
+	showNonMarkdownFiles: boolean;
+	debugLogging: boolean;
+	useWikiLinks: boolean;
+	showEnclosingNote: boolean;
+	folderNoteType: string;
+	folderNoteFilename: string;
 }
 
 enum WaypointType {
@@ -90,7 +89,7 @@ export default class Waypoint extends Plugin {
 					this.log("create " + file.name);
 					this.foldersWithChanges.add(file.parent);
 					this.scheduleUpdate();
-				})
+				}),
 			);
 			this.registerEvent(
 				this.app.vault.on("delete", (file) => {
@@ -100,7 +99,7 @@ export default class Waypoint extends Plugin {
 						this.foldersWithChanges.add(parentFolder);
 						this.scheduleUpdate();
 					}
-				})
+				}),
 			);
 			this.registerEvent(
 				this.app.vault.on("rename", (file, oldPath) => {
@@ -111,7 +110,7 @@ export default class Waypoint extends Plugin {
 						this.foldersWithChanges.add(parentFolder);
 					}
 					this.scheduleUpdate();
-				})
+				}),
 			);
 			this.registerEvent(this.app.vault.on("modify", this.detectFlags));
 		});
@@ -120,7 +119,7 @@ export default class Waypoint extends Plugin {
 		this.addSettingTab(new WaypointSettingsTab(this.app, this));
 	}
 
-	onunload() { }
+	onunload() {}
 
 	detectFlags = async (file: TFile) => {
 		this.detectFlag(file, WaypointType.Waypoint);
@@ -295,7 +294,7 @@ export default class Waypoint extends Plugin {
 			const fm = this.app.metadataCache?.getFileCache(file)?.frontmatter;
 			if (fm?.hasOwnProperty("title") && typeof fm.title === "string") {
 				this.log(`Found frontmatter title for ${file.path}: ${fm.title}`);
-				return fm.title
+				return fm.title;
 			}
 		}
 		return undefined;
@@ -418,8 +417,7 @@ export default class Waypoint extends Plugin {
 
 			if (this.settings.foldersOnTop) {
 				children.sort((x, y) => {
-					if (x instanceof TFolder
-						&& !(y instanceof TFolder)) return -1;
+					if (x instanceof TFolder && !(y instanceof TFolder)) return -1;
 					else return 1;
 				});
 			}
@@ -569,19 +567,20 @@ class WaypointSettingsTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl('h2', { text: "Waypoint Settings" });
+		containerEl.createEl("h2", { text: "Waypoint Settings" });
 		new Setting(this.containerEl)
 			.setName("Folder Note Style")
 			.setDesc("Select the style of folder note used.")
-			.addDropdown((dropdown) => dropdown
-				.addOption(FolderNoteType.InsideFolder, "Folder Name Inside")
-				.addOption(FolderNoteType.OutsideFolder, "Folder Name Outside")
-				.addOption(FolderNoteType.CustomFilename, "Custom Filename")
-				.setValue(this.plugin.settings.folderNoteType)
-				.onChange(async (value) => {
-					this.plugin.settings.folderNoteType = value;
-					await this.plugin.saveSettings();
-				})
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption(FolderNoteType.InsideFolder, "Folder Name Inside")
+					.addOption(FolderNoteType.OutsideFolder, "Folder Name Outside")
+					.addOption(FolderNoteType.CustomFilename, "Custom Filename")
+					.setValue(this.plugin.settings.folderNoteType)
+					.onChange(async (value) => {
+						this.plugin.settings.folderNoteType = value;
+						await this.plugin.saveSettings();
+					}),
 			);
 		// new Setting(containerEl)
 		// 	.setName("Debug Plugin")
@@ -601,7 +600,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.showFolderNotes).onChange(async (value) => {
 					this.plugin.settings.showFolderNotes = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Show Non-Markdown Files")
@@ -610,7 +609,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.showNonMarkdownFiles).onChange(async (value) => {
 					this.plugin.settings.showNonMarkdownFiles = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Show Enclosing Note")
@@ -619,7 +618,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.showEnclosingNote).onChange(async (value) => {
 					this.plugin.settings.showEnclosingNote = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Folders on Top")
@@ -628,7 +627,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.foldersOnTop).onChange(async (value) => {
 					this.plugin.settings.foldersOnTop = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Stop Scan at Folder Notes")
@@ -637,7 +636,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.stopScanAtFolderNotes).onChange(async (value) => {
 					this.plugin.settings.stopScanAtFolderNotes = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Use WikiLinks")
@@ -646,16 +645,16 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.useWikiLinks).onChange(async (value) => {
 					this.plugin.settings.useWikiLinks = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Use Title Property")
-			.setDesc("If enabled, links will use the \"title\" frontmatter property for the displayed text (if it exists).")
+			.setDesc('If enabled, links will use the "title" frontmatter property for the displayed text (if it exists).')
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.useFrontMatterTitle).onChange(async (value) => {
 					this.plugin.settings.useFrontMatterTitle = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		new Setting(containerEl)
 			.setName("Use Spaces for Indentation")
@@ -664,7 +663,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.useSpaces).onChange(async (value: boolean) => {
 					this.plugin.settings.useSpaces = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		// TODO: Determine if there is a number component that can be used here instead
 		new Setting(containerEl)
@@ -679,7 +678,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 						if (isNaN(num)) return;
 						this.plugin.settings.numSpaces = num;
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 		new Setting(containerEl)
 			.setName("Waypoint Flag")
@@ -696,7 +695,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 							console.error("Error: Waypoint flag must be surrounded by double-percent signs.");
 						}
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 		new Setting(containerEl)
 			.setName("Landmark Flag")
@@ -713,7 +712,7 @@ class WaypointSettingsTab extends PluginSettingTab {
 							console.error("Error: Landmark flag must be surrounded by double-percent signs.");
 						}
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 		new Setting(containerEl)
 			.setName("Ignored Files/Folders")
@@ -729,17 +728,16 @@ class WaypointSettingsTab extends PluginSettingTab {
 							.map((value) => this.getNormalizedPath(value));
 						this.plugin.settings.ignorePaths = paths;
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 		new Setting(containerEl)
 			.setName("Custom Folder Note Filename")
 			.setDesc("The filename of the folder note. Only used if the folder note style is set to Custom Filename.")
-			.addText(text => text
-				.setValue(this.plugin.settings.folderNoteFilename)
-				.onChange(async (value) => {
+			.addText((text) =>
+				text.setValue(this.plugin.settings.folderNoteFilename).onChange(async (value) => {
 					this.plugin.settings.folderNoteFilename = value;
 					await this.plugin.saveSettings();
-				})
+				}),
 			);
 		const postscriptElement = containerEl.createEl("div", {
 			cls: "setting-item",
